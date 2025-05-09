@@ -6,14 +6,35 @@ const logger = winston.createLogger({
         winston.format.timestamp({
             format: 'YYYY-MM-DD HH:mm:ss'
         }),
-        winston.format.errors({ stack: true }),
-        winston.format.splat(),
-        winston.format.json()
+        winston.format.printf(({ level, message, timestamp }) => {
+            return `${timestamp} ${level}: ${message}`;
+        })
     ),
     defaultMeta: { service: 'cipher-bot' },
     transports: [
-        new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-        new winston.transports.File({ filename: 'logs/combined.log' })
+        new winston.transports.File({ 
+            filename: 'logs/error.log', 
+            level: 'error',
+            format: winston.format.combine(
+                winston.format.timestamp({
+                    format: 'YYYY-MM-DD HH:mm:ss'
+                }),
+                winston.format.printf(({ level, message, timestamp, stack }) => {
+                    return `${timestamp} ${level}: ${message}${stack ? '\n' + stack : ''}`;
+                })
+            )
+        }),
+        new winston.transports.File({ 
+            filename: 'logs/combined.log',
+            format: winston.format.combine(
+                winston.format.timestamp({
+                    format: 'YYYY-MM-DD HH:mm:ss'
+                }),
+                winston.format.printf(({ level, message, timestamp }) => {
+                    return `${timestamp} ${level}: ${message}`;
+                })
+            )
+        })
     ]
 });
 
@@ -21,7 +42,12 @@ if (process.env.NODE_ENV !== 'production') {
     logger.add(new winston.transports.Console({
         format: winston.format.combine(
             winston.format.colorize(),
-            winston.format.simple()
+            winston.format.timestamp({
+                format: 'YYYY-MM-DD HH:mm:ss'
+            }),
+            winston.format.printf(({ level, message, timestamp }) => {
+                return `${timestamp} ${level}: ${message}`;
+            })
         )
     }));
 }
