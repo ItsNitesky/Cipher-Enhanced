@@ -18,14 +18,14 @@ module.exports = {
 
             // Fetch all warnings for the user
             const [warnings] = await pool.execute(
-                `SELECT uw.id, uw.issued_at, uw.notes, 
+                `SELECT uw.id, uw.created_at, uw.notes, 
                         wt.title, wt.description,
                         u.username as issued_by
                  FROM user_warnings uw
                  JOIN warning_templates wt ON uw.template_id = wt.id
                  JOIN users u ON uw.issued_by = u.id
                  WHERE uw.user_id = ?
-                 ORDER BY uw.issued_at DESC`,
+                 ORDER BY uw.created_at DESC`,
                 [targetUser.id]
             );
 
@@ -44,7 +44,7 @@ module.exports = {
 
             // Add each warning as a field
             warnings.forEach(warning => {
-                const date = new Date(warning.issued_at).toLocaleString();
+                const date = new Date(warning.created_at).toLocaleString();
                 embed.addFields({
                     name: `Warning #${warning.id} - ${warning.title} (${date})`,
                     value: `Description: ${warning.description}\nNotes: ${warning.notes}\nIssued by: ${warning.issued_by}`
